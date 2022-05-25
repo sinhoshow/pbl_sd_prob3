@@ -1,88 +1,142 @@
-/*
- *  dht.c:
- *	read temperature and humidity from DHT11 or DHT22 sensor
- */
 #include <wiringPi.h>
+#include <lcd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#define MAX_TIMINGS	85
-#define DHT_PIN		3	/* GPIO-22 */
-int data[5] = { 0, 0, 0, 0, 0 };
-void read_dht_data()
-{
-	uint8_t laststate	= HIGH;
-	uint8_t counter		= 0;
-	uint8_t j			= 0, i;
-	data[0] = data[1] = data[2] = data[3] = data[4] = 0;
-	/* pull pin down for 18 milliseconds */
-	pinMode( DHT_PIN, OUTPUT );
-	digitalWrite( DHT_PIN, LOW );
-	delay( 18 );
-	/* prepare to read the pin */
-	pinMode( DHT_PIN, INPUT );
-	/* detect change and read data */
-	for ( i = 0; i < MAX_TIMINGS; i++ )
-	{
-		counter = 0;
-		while ( digitalRead( DHT_PIN ) == laststate )
-		{
-			counter++;
-			delayMicroseconds( 1 );
-			if ( counter == 255 )
-			{
-				break;
-			}
-		}
-		laststate = digitalRead( DHT_PIN );
-		if ( counter == 255 )
-			break;
-		/* ignore first 3 transitions */
-		if ( (i >= 4) && (i % 2 == 0) )
-		{
-			/* shove each bit into the storage bytes */
-			data[j / 8] <<= 1;
-			if ( counter > 16 )
-				data[j / 8] |= 1;
-			j++;
-		}
-	}
-	/*
-	 * check we read 40 bits (8bit x 5 ) + verify checksum in the last byte
-	 * print it out if data is good
-	 */
-	if ( (j >= 40) &&
-	     (data[4] == ( (data[0] + data[1] + data[2] + data[3]) & 0xFF) ) )
-	{
-		float h = (float)((data[0] << 8) + data[1]) / 10;
-		if ( h > 100 )
-		{
-			h = data[0];	// for DHT11
-		}
-		float c = (float)(((data[2] & 0x7F) << 8) + data[3]) / 10;
-		if ( c > 125 )
-		{
-			c = data[2];	// for DHT11
-		}
-		if ( data[2] & 0x80 )
-		{
-			c = -c;
-		}
-		float f = c * 1.8f + 32;
-		printf( "Humidity = %.1f %% Temperature = %.1f *C (%.1f *F)\n", h, c, f );
-	}else  {
-		printf( "Data not good, skip\n" );
-	}
+#include <MQTTClient.h>
+
+//USE WIRINGPI PIN NUMBERS
+#define LCD_RS  25               //Register select pin
+#define LCD_E   24               //Enable Pin
+#define LCD_D4  23               //Data pin 4
+#define LCD_D5  22               //Data pin 5
+#define LCD_D6  21               //Data pin 6
+#define LCD_D7  14               //Data pin 7
+#define MAXTIMINGS 85
+#define DHTPIN 7
+/* Caso desejar utilizar outro broker MQTT, substitua o endereco abaixo */
+#define MQTT_ADDRESS   "tcp://iot.eclipse.org"
+/* Substitua este por um ID unico em sua aplicacao */
+#define CLIENTID       "MQTTCClientID"
+MQTTClient client;
+
+void publish(MQTTClient client, char* topic, char* payload);
+int on_message(void *context, char *topicName, int topicLen, MQTTClient_message *message);
+
+int lcd;
+int dht11_dat[5] = {0, 0, 0, 0, 0};
+
+
+void publish(MQTTClient client, char* topic, char* payload) {
+    MQTTClient_message pubmsg = MQTTClient_message_initializer;
+
+    pubmsg.payload = payload;
+    pubmsg.payloadlen = strlen(pubmsg.payload);
+    pubmsg.qos = 2;
+    pubmsg.retained = 0;
+    MQTTClient_deliveryToken token;
+    MQTTClient_publishMessage(client, topic, &pubmsg, &token);
+    MQTTClient_waitForCompletion(client, token, 1000L);
 }
-int main( void )
+
+int on_message(void *context, char *topicName, int topicLen, MQTTClient_message *message) {
+    char* payload = message->payload;
+
+    /* Mostra a mensagem recebida */
+    printf("Mensagem recebida! \n\rTopico: %s Mensagem: %s\n", topicName, payload);
+
+    /* Faz echo da mensagem recebida */
+    publish(client, MQTT_PUBLISH_TOPIC, payload);
+
+    MQTTClient_freeMessage(&message);
+    MQTTClient_free(topicName);
+    return 1;
+}
+
+void read_dht11_dat()
 {
-	printf( "Raspberry Pi DHT11/DHT22 temperature/humidity test\n" );
-	if ( wiringPiSetup() == -1 )
-		exit( 1 );
-	while ( 1 )
-	{
-		read_dht_data();
-		delay( 2000 ); /* wait 2 seconds before next read */
-	}
-	return(0);
+        uint8_t laststate = HIGH;
+        uint8_t counter = 0;
+        uint8_t j = 0, i;
+        float f; 
+
+        dht11_dat[0] = dht11_dat[1] = dht11_dat[2] = dht11_dat[3] = dht11_dat[4] = 0;
+
+        pinMode(DHTPIN, OUTPUT);
+        digitalWrite(DHTPIN, LOW);
+        delay(18);
+        
+        digitalWrite(DHTPIN, HIGH);
+        delayMicroseconds(40);
+        
+        pinMode(DHTPIN, INPUT);
+
+        for (i = 0; i < MAXTIMINGS; i++)
+        {
+                counter = 0;
+                while (digitalRead(DHTPIN) == laststate)
+                {
+                        counter++;
+                        delayMicroseconds(1);
+                        if (counter == 255)
+                        {
+                                break;
+                        }
+                }
+                laststate = digitalRead(DHTPIN);
+
+                if (counter == 255)
+                        break;
+
+                if ((i >= 4) && (i % 2 == 0))
+                {
+                        dht11_dat[j / 8] <<= 1;
+                        if (counter > 16)
+                                dht11_dat[j / 8] |= 1;
+                        j++;
+                }
+         }
+
+        if ((j >= 40) && (dht11_dat[4] == ((dht11_dat[0] + dht11_dat[1] + dht11_dat[2] + dht11_dat[3]) & 0xFF)))
+        {
+                f = dht11_dat[2] * 9. / 5. + 32;
+
+                lcdPosition(lcd, 0, 0);
+                lcdPrintf(lcd, "Humidity: %d.%d %%\n", dht11_dat[0], dht11_dat[1]);
+
+                lcdPosition(lcd, 0, 1);
+                //lcdPrintf(lcd, "Temp: %d.0 C", dht11_dat[2]); //Uncomment for Celsius
+                lcdPrintf(lcd, "Temp: %.1f F", f); //Comment out for Celsius
+        }
+}
+
+int main(void)
+{		
+		int rc;
+		MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
+
+		/* Inicializacao do MQTT (conexao & subscribe) */
+		MQTTClient_create(&client, MQTT_ADDRESS, CLIENTID, MQTTCLIENT_PERSISTENCE_NONE, NULL);
+		MQTTClient_setCallbacks(client, NULL, NULL, on_message, NULL);
+
+		rc = MQTTClient_connect(client, &conn_opts);
+
+		if (rc != MQTTCLIENT_SUCCESS)
+		{
+			printf("\n\rFalha na conexao ao broker MQTT. Erro: %d\n", rc);
+		}
+
+		MQTTClient_subscribe(client, MQTT_SUBSCRIBE_TOPIC, 0);
+
+        int lcd;
+        wiringPiSetup();
+        lcd = lcdInit (2, 16, 4, LCD_RS, LCD_E, LCD_D4, LCD_D5, LCD_D6, LCD_D7, 0, 0, 0, 0);
+        
+        while (1)
+        {
+                read_dht11_dat();
+                delay(2000); 
+        }
+
+        return(0);
 }
