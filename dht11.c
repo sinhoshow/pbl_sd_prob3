@@ -9,6 +9,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <time.h>
+#include <string.h>
  
 #include "ads1115_rpi.h"
 #include <mosquitto.h>
@@ -40,9 +41,6 @@
 #define MQTT_PUBLISH_TOPIC     "tp_03_g04/#"
 #define MQTT_SUBSCRIBE_TOPIC   "tp_03_g04/intervalo"
 
-// void publish(MQTTClient client, char* topic, char* payload);
-// int on_message(void *context, char *topicName, int topicLen, MQTTClient_message *message);
-
 int lcd;
 int dht11_dat[5] = {0, 0, 0, 0, 0};
 int intervalo_medicao = 1000; //em s
@@ -50,7 +48,18 @@ int temperatura = 0;
 int umidade = 0;
 int pressao = 0;
 int luminosidade = 0;
+
+int indice_temperaturas = 0;
 char* temperaturas[10];
+
+int indice_luminosidades = 0;
+char* luminosidades[10];
+
+int indice_pressoes = 0;
+char* pressoes[10];
+
+int indice_umidades = 0;
+char* umidades[10];
 
 
 int rc;
@@ -124,7 +133,7 @@ void gravarTemperatura(){
         if (arq == NULL){
                 printf("Problema ao abrir arquivo");
         }
-        fprintf(arq, "%d - %s", temperatura,  ctime(&now));
+        fprintf(arq, "%d C-%s", temperatura,  ctime(&now));
         fclose(arq);
 }
 
@@ -136,7 +145,7 @@ void gravarUmidade(){
         if (arq == NULL){
                 printf("Problema ao abrir arquivo");
         }
-        fprintf(arq, "%d - %s", umidade,  ctime(&now));
+        fprintf(arq, "%d %%-%s", umidade,  ctime(&now));
         fclose(arq);
 }
 void gravarPressao(){
@@ -147,7 +156,7 @@ void gravarPressao(){
         if (arq == NULL){
                 printf("Problema ao abrir arquivo");
         }
-        fprintf(arq, "%d - %s", pressao,  ctime(&now));
+        fprintf(arq, "%d atm-%s", pressao,  ctime(&now));
         fclose(arq);
 }
 
@@ -159,43 +168,129 @@ void gravarLuminosidade(){
         if (arq == NULL){
                 printf("Problema ao abrir arquivo");
         }
-        fprintf(arq, "%d - %s", luminosidade,  ctime(&now));
+        fprintf(arq, "%d %%-%s", luminosidade,  ctime(&now));
         fclose(arq);
 }
 
 void lerArqTemperatura(){
-        char linha[100];
-        FILE *arq;
-        char *result, ch;
-        int numero_de_linhas = 0;
-       // char *token = strtok(temperaturas, " ");
-        arq = fopen("historicos/temperaturas.txt", "a+");
-        if (arq == NULL){
-                printf("Problema ao abrir arquivo");
-        }
-        printf("Lendo arquivo de temperatura\n");
-        ch=fgetc(arq);
-        while( ch != NULL ){                
-                if(ch == '\n'){
-                     numero_de_linhas++;
-                     printf("numero_de_linhas: %d\n", numero_de_linhas);   
-                }
-                ch=fgetc(arq);             
-                
-        }
-        printf("Numero de linhas: %d", numero_de_linhas);
-                
-        int j = 0;
-        for (int i = 0; i < numero_de_linhas; i++)
-        {       
-                result = fgets(linha, 100, arq);
-                if (numero_de_linhas - i < 10 && result){                        
-                        temperaturas[j] = result;
-                        j++;
-                        printf("%s", temperaturas[j]);
-                }                        
-        }
+    FILE *in;
+    int count = 0;
+    long int pos;
+    char s[100];
 
+    in = fopen("historicos/temperaturas.txt", "a+");
+    /* always check return of fopen */
+    if (in == NULL) {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
+    fseek(in, 0, SEEK_END);
+    pos = ftell(in);
+    /* Don't write each char on output.txt, just search for '\n' */
+    while (pos) {
+        fseek(in, --pos, SEEK_SET); /* seek from begin */
+        if (fgetc(in) == '\n') {
+            if (count++ == 9) break;
+        }
+    }
+
+    /* Write line by line, is faster than fputc for each char */
+    int i = 0; 
+    while (fgets(s, sizeof(s), in) != NULL) {
+        temperaturas[i] = s;         
+    }
+    fclose(in);
+}
+
+void lerArqUmidade(){
+    FILE *in;
+    int count = 0;
+    long int pos;
+    char s[100];
+
+    in = fopen("historicos/umidades.txt", "a+");
+    /* always check return of fopen */
+    if (in == NULL) {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
+    fseek(in, 0, SEEK_END);
+    pos = ftell(in);
+    /* Don't write each char on output.txt, just search for '\n' */
+    while (pos) {
+        fseek(in, --pos, SEEK_SET); /* seek from begin */
+        if (fgetc(in) == '\n') {
+            if (count++ == 9) break;
+        }
+    }
+
+    /* Write line by line, is faster than fputc for each char */
+    int i = 0; 
+    while (fgets(s, sizeof(s), in) != NULL) {
+        umidades[i] = s;         
+    }
+    fclose(in);
+}
+
+void lerArqPressoes(){
+    FILE *in;
+    int count = 0;
+    long int pos;
+    char s[100];
+
+    in = fopen("historicos/pressoes.txt", "a+");
+    /* always check return of fopen */
+    if (in == NULL) {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
+    fseek(in, 0, SEEK_END);
+    pos = ftell(in);
+    /* Don't write each char on output.txt, just search for '\n' */
+    while (pos) {
+        fseek(in, --pos, SEEK_SET); /* seek from begin */
+        if (fgetc(in) == '\n') {
+            if (count++ == 9) break;
+        }
+    }
+
+    /* Write line by line, is faster than fputc for each char */
+    int i = 0; 
+    while (fgets(s, sizeof(s), in) != NULL) {
+        pressoes[i] = s;         
+    }
+    fclose(in);
+}
+
+void lerArqLuminosidade(){
+    FILE *in;
+    int count = 0;
+    long int pos;
+    char s[100];
+
+    in = fopen("historicos/luminosidades.txt", "a+");
+    /* always check return of fopen */
+    if (in == NULL) {
+        perror("fopen");
+        exit(EXIT_FAILURE);
+    }
+
+    fseek(in, 0, SEEK_END);
+    pos = ftell(in);
+    /* Don't write each char on output.txt, just search for '\n' */
+    while (pos) {
+        fseek(in, --pos, SEEK_SET); /* seek from begin */
+        if (fgetc(in) == '\n') {
+            if (count++ == 9) break;
+        }
+    }
+
+    /* Write line by line, is faster than fputc for each char */
+    int i = 0; 
+    while (fgets(s, sizeof(s), in) != NULL) {
+        luminosidades[i] = s;         
+    }
+    fclose(in);
 }
 
 
@@ -210,6 +305,8 @@ int potenciometro(){
         luminosidade = (readVoltage(3) * 100)/3;
         gravarPressao();
         gravarLuminosidade();
+        lerArqPressoes();
+        lerArqLuminosidade();
 
         return EXIT_SUCCESS;
 }
@@ -268,6 +365,7 @@ void read_dht11_dat()
                 gravarTemperatura();
                 gravarUmidade();
                 lerArqTemperatura();
+                lerArqUmidade();
                 //PERSISTIR OS DADOS
         } 
 }
@@ -277,9 +375,13 @@ void *getMeasurement(){
         {
                 read_dht11_dat();
                 potenciometro();
+                char payload = createJsonFile();
+                size_t len = strlen(payload);
+                publish_mosquitto("tp_03_g04/dados", len, char_intervalo_medicao);
                 delay(intervalo_medicao); 
         }
 }
+
 // Função que printa no display os dados dos sensores
 void mostrarMedidas(){
         lcdClear(lcd);    
@@ -287,6 +389,48 @@ void mostrarMedidas(){
         lcdPrintf(lcd, "H: %d T: %d C ", umidade, temperatura); // printando sensor de umidade e temperatura no display lcd
         lcdPosition(lcd, 0, 1);
         lcdPrintf(lcd, "P: %d L: %d", pressao, luminosidade); // printando sensor de pressão e luminosidade no display lcd
+
+}
+
+void mostrarTemperaturas(){
+        char *temperatura_dado = strtok(temperaturas[indice_temperaturas], "-");
+        char *temperatura_data = strtok(NULL, "-");
+        lcdClear(lcd);    
+        lcdPosition(lcd, 0, 0);
+        lcdPrintf(lcd, "%d - Temperatura: %s ", indice_temperaturas + 1, temperatura_dado); // printando sensor de umidade e temperatura no display lcd
+        lcdPosition(lcd, 0, 1);
+        lcdPrintf(lcd, "%s", temperatura_data); // printando sensor de pressão e luminosidade no display lcd
+}
+
+void mostrarUmidades(){
+        char *umidade_dado = strtok(umidades[indice_umidades], "-");
+        char *umidade_data = strtok(NULL, "-");
+        lcdClear(lcd);    
+        lcdPosition(lcd, 0, 0);
+        lcdPrintf(lcd, "%d - Umidade: %s", indice_umidades + 1, umidade_dado); // printando sensor de umidade e umidade no display lcd
+        lcdPosition(lcd, 0, 1);
+        lcdPrintf(lcd, "%s", umidade_data);  // printando sensor de pressão e luminosidade no display lcd
+}
+
+void mostrarLuminosidades(){
+        char *luminosidade_dado = strtok(luminosidades[indice_luminosidades], "-");
+        char *luminosidade_data = strtok(NULL, "-");
+        lcdClear(lcd);    
+        lcdPosition(lcd, 0, 0);
+        lcdPrintf(lcd, "%d - Luminosidade: %s ", indice_luminosidades + 1, luminosidade_dado); // printando sensor de umidade e luminosidade no display lcd
+        lcdPosition(lcd, 0, 1);
+        lcdPrintf(lcd, "%s", luminosidade_data);  // printando sensor de pressão e luminosidade no display lcd
+
+}
+
+void mostrarPressoes(){
+        char *pressao_dado = strtok(pressoes[indice_pressoes], "-");
+        char *pressao_data = strtok(NULL, "-");
+        lcdClear(lcd);    
+        lcdPosition(lcd, 0, 0);
+        lcdPrintf(lcd, "%d - pressao: %s ", indice_pressoes + 1, pressao_dado); // printando sensor de umidade e pressao no display lcd
+        lcdPosition(lcd, 0, 1);
+        lcdPrintf(lcd, "%s", pressao_data);  // printando sensor de pressão e luminosidade no display lcd
 
 }
 
@@ -299,55 +443,124 @@ void mostrarSelecaoDeIntervalo(int tempo){
         lcdPrintf(lcd, "%d s", tempo);
 }
 
+char createJsonFile(){
+        char *payload = NULL;
+        size_t index = 0;
+        cJSON *dado = cJSON_CreateObject();
+
+	cJSON *array_temperaturas = NULL;
+	cJSON *array_umidades = NULL;
+	cJSON *array_pressoes = NULL; 
+	cJSON *array_luminosidades = NULL;   
+
+        array_temperaturas = cJSON_AddArrayToObject(dado, "temperaturas");
+        if (array_temperaturas == NULL)
+        {
+                fprintf(stderr, "Failed to convertJson.\n");
+        }
+
+        array_umidades = cJSON_AddArrayToObject(dado, "umidades");
+        if (array_umidades == NULL)
+        {
+                fprintf(stderr, "Failed to convertJson.\n");
+        }
+
+        array_pressoes = cJSON_AddArrayToObject(dado, "pressoes");
+        if (array_pressoes == NULL)
+        {
+                fprintf(stderr, "Failed to convertJson.\n");
+        }
+
+        array_luminosidades = cJSON_AddArrayToObject(dado, "luminosidades");
+        if (array_luminosidades == NULL)
+        {
+                fprintf(stderr, "Failed to convertJson.\n");
+        }
+
+        for (index = 0; index < (sizeof(temperaturas)/8); ++index)
+        { 
+                if(temperaturas[index] != NULL){
+                        cJSON *temp = NULL;
+                        temp = cJSON_CreateString(temperaturas[index]);
+                        cJSON_AddItemToArray(array_temperaturas, temp);
+                }        
+        }
+
+        for (index = 0; index < (sizeof(pressoes)/8); ++index)
+        { 
+                if(pressoes[index] != NULL){
+                        cJSON *press = NULL;
+                        press = cJSON_CreateString(pressoes[index]);
+                        cJSON_AddItemToArray(array_pressoes, press);
+                }        
+        }
+
+        for (index = 0; index < (sizeof(umidades)/8); ++index)
+        { 
+                if(umidades[index] != NULL){
+                        cJSON *umid = NULL;
+                        umid = cJSON_CreateString(umidades[index]);
+                        cJSON_AddItemToArray(array_umidades, umid);
+                }        
+        }
+
+        for (index = 0; index < (sizeof(luminosidades)/8); ++index)
+        { 
+                if(luminosidades[index] != NULL){
+                        cJSON *lum = NULL;
+                        lum = cJSON_CreateString(luminosidades[index]);
+                        cJSON_AddItemToArray(array_luminosidades, lum);
+                }        
+        }
+
+        payload = cJSON_Print(dado);
+        if (payload == NULL)
+        {
+                fprintf(stderr, "Failed to convertJson.\n");
+        }
+
+        return payload;
+}
+
 
 
 int main(void)
-{               
-        // int rc;
-        //MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
-
-        // /* Inicializacao do MQTT (conexao & subscribe) */
-        // MQTTClient_create(&client, MQTT_ADDRESS, CLIENTID, MQTTCLIENT_PERSISTENCE_NONE, NULL);
-        // MQTTClient_setCallbacks(client, NULL, NULL, on_message, NULL);
-
-        // rc = MQTTClient_connect(client, &conn_opts);
-
-        // if (rc != MQTTCLIENT_SUCCESS)
-        // {
-        //      printf("\n\rFalha na conexao ao broker MQTT. Erro: %d\n", rc);
-        // }
-        
+{     
         
         wiringPiSetup(); // inicializando a wiringPi
-        mosquitto_lib_init();
+        mosquitto_lib_init(); //inicialização da lib do mosquitto
 
-        //MQTTClient_subscribe(client, MQTT_SUBSCRIBE_TOPIC, 0);        
+        //Envia o intervalo de medição atual ao broker
+        sprintf(char_intervalo_medicao, "%d", intervalo_medicao);
+        int len = sprintf(char_intervalo_medicao, "%d", intervalo_medicao);
+        publish_mosquitto("tp_03_g04/intervalo", len, char_intervalo_medicao);
+
+        //Inicia o LCD      
         lcd = lcdInit (2, 16, 4, LCD_RS, LCD_E, LCD_D4, LCD_D5, LCD_D6, LCD_D7, 0, 0, 0, 0);
 
+        // cria thread que ler os sensores 
         pthread_t tid;
-        pthread_create(&tid, NULL, getMeasurement, NULL); // thread que fica sempre pedindo dados dos sensores 
+        pthread_create(&tid, NULL, getMeasurement, NULL); 
 
 
+        // cria thread de subscribe
         pthread_t t_subscribe;
         pthread_create(&t_subscribe, NULL, subscribe_mosquitto, NULL); // thread que fica sempre ouvindo o mosquitto
 
-        //Logica dos botoes
-        // DOIS MODOS NO DISPLAY //
-                // MODO MEDIDAS
-                // MODO INTERVALO
-        int modo = 1;
-
-        pinMode(BUTTON_0, INPUT);           
-
+       
+        int modo = 0;
+        pinMode(BUTTON_0, INPUT);
 
         while(1){ 
                 if(digitalRead(BUTTON_0) == 0){
-                        modo = !modo;                                               
+                        modo = modo++;
+                        if (modo > 4){
+                                modo = 0;
+                        }                                               
                         delay(20);
                         while(digitalRead(BUTTON_0) == 0); // aguarda enquato chave ainda esta pressionada           
                         delay(20);
                 }
-                if(modo == 1) mostrarMedidas();
                 if (modo == 0){
                         mostrarSelecaoDeIntervalo(intervalo_medicao);
                         if(digitalRead(BUTTON_2) == 0){
@@ -377,6 +590,91 @@ int main(void)
                         }                        
                               
                 }
+                if(modo == 1) {
+                        mostrarTemperaturas();
+                        if(digitalRead(BUTTON_2) == 0){                                
+                                indice_temperaturas = indice_temperaturas++;
+                                if (temperaturas[indice_temperatura] == NULL){
+                                        indice_temperatura = 0;
+                                }                                            
+                                delay(20);
+                                while(digitalRead(BUTTON_2) == 0); // aguarda enquato chave ainda esta pressionada           
+                                delay(20); 
+                        }
+                        if(digitalRead(BUTTON_1) == 0){
+                                indice_temperaturas = indice_temperaturas - 1;
+                                if (indice_temperaturas < 0){
+                                        indice_temperaturas = 0;
+                                }                                             
+                                delay(20);
+                                while(digitalRead(BUTTON_1) == 0); // aguarda enquato chave ainda esta pressionada           
+                                delay(20);
+                        }  
+                }else
+                if(modo == 2) {
+                        mostrarUmidades();
+                        if(digitalRead(BUTTON_2) == 0){                                
+                                indice_umidades = indice_umidades++;
+                                if (umidades[indice_umidades] == NULL){
+                                        indice_umidades = 0;
+                                }                                            
+                                delay(20);
+                                while(digitalRead(BUTTON_2) == 0); // aguarda enquato chave ainda esta pressionada           
+                                delay(20); 
+                        }
+                        if(digitalRead(BUTTON_1) == 0){
+                                indice_umidades = indice_umidades - 1;
+                                if (indice_umidades < 0){
+                                        indice_umidades = 0;
+                                }                                             
+                                delay(20);
+                                while(digitalRead(BUTTON_1) == 0); // aguarda enquato chave ainda esta pressionada           
+                                delay(20);
+                        } 
+                }else
+                if(modo == 3) {
+                        mostrarPressoes();
+                        if(digitalRead(BUTTON_2) == 0){                                
+                                indice_pressoes = indice_pressoes++;
+                                if (pressoes[indice_pressoes] == NULL){
+                                        indice_pressoes = 0;
+                                }                                             
+                                delay(20);
+                                while(digitalRead(BUTTON_2) == 0); // aguarda enquato chave ainda esta pressionada           
+                                delay(20); 
+                        }
+                        if(digitalRead(BUTTON_1) == 0){
+                                indice_pressoes = indice_pressoes - 1;
+                                if (indice_pressoes < 0){
+                                        indice_pressoes = 0;
+                                }                                             
+                                delay(20);
+                                while(digitalRead(BUTTON_1) == 0); // aguarda enquato chave ainda esta pressionada           
+                                delay(20);
+                        }                         
+                }
+                if(modo == 4) {
+                        mostrarLuminosidades();
+                        if(digitalRead(BUTTON_2) == 0){                                
+                                indice_luminosidades = indice_luminosidades++;
+                                if (luminosidades[indice_luminosidades] == NULL){
+                                        indice_luminosidades = 0;
+                                }                                             
+                                delay(20);
+                                while(digitalRead(BUTTON_2) == 0); // aguarda enquato chave ainda esta pressionada           
+                                delay(20); 
+                        }
+                        if(digitalRead(BUTTON_1) == 0){
+                                indice_luminosidades = indice_luminosidades - 1;
+                                if (indice_luminosidades < 0){
+                                        indice_luminosidades = 0;
+                                }                                             
+                                delay(20);
+                                while(digitalRead(BUTTON_1) == 0); // aguarda enquato chave ainda esta pressionada           
+                                delay(20);
+                        }   
+                }
+                
                 
                 delay(1000);            
         }
