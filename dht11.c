@@ -11,6 +11,8 @@
 #include <time.h>
  
 #include "ads1115_rpi.h"
+#include <mosquitto.h>
+
 //#include <MQTTClient.h>
 
 
@@ -48,33 +50,71 @@ int temperatura = 0;
 int umidade = 0;
 int pressao = 0;
 int luminosidade = 0;
+char* temperaturas[10];
 
-// void publish(MQTTClient client, char* topic, char* payload) {
-//     MQTTClient_message pubmsg = MQTTClient_message_initializer;
 
-//     pubmsg.payload = payload;
-//     pubmsg.payloadlen = strlen(pubmsg.payload);
-//     pubmsg.qos = 2;
-//     pubmsg.retained = 0;
-//     MQTTClient_deliveryToken token;
-//     MQTTClient_publishMessage(client, topic, &pubmsg, &token);
-//     MQTTClient_waitForCompletion(client, token, 1000L);
-// }
+int rc;
+struct mosquitto * mosq;
 
-// int on_message(void *context, char *topicName, int topicLen, MQTTClient_message *message) {
-//     char* payload = message->payload;
+void connect_broker(){    
+                
+        mosquitto_username_pw_set(mosq, "aluno", "aluno*123");  
+        
+        rc = mosquitto_connect(mosq, "10.0.0.101", 1883, 60);
+        if(rc != 0){
+                printf("Client could not connect to broker! Error Code: %d\n", rc);
+                mosquitto_destroy(mosq);
+        }
+        printf("We are now connected to the broker!\n");
 
-//     /* Mostra a mensagem recebida */
-//     //printf("Mensagem recebida! \n\rTopico: %s Mensagem: %s\n", topicName, payload);
+}
 
-//     /* Faz echo da mensagem recebida */
-//     publish(client, MQTT_PUBLISH_TOPIC, payload);
-//     intervalo_medicao = payload;    
+void desconect_mosquitto(){
+        mosquitto_disconnect(mosq);
+        mosquitto_destroy(mosq);
+        mosquitto_lib_cleanup();
+}
 
-//     MQTTClient_freeMessage(&message);
-//     MQTTClient_free(topicName);
-//     return 1;
-// }
+void publish_mosquitto(char *topic, int payload_size ,char *payload){
+        printf("%s", payload);
+        mosq = mosquitto_new("publisher-test", true, NULL);
+        connect_broker();
+        mosquitto_publish(mosq, NULL, topic, payload_size, payload, 0, false);
+        desconect_mosquitto();        
+}
+
+
+void on_connect(struct mosquitto *mosq, void *obj, int rc) {
+        printf("ID: %d\n", * (int *) obj);
+        if(rc){
+                printf("Error with result code: %d\n", rc);
+                exit(-1);
+        }
+        mosquitto_subscribe(mosq, NULL, MQTT_SUBSCRIBE_TOPIC, 0);
+}
+
+void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg) {
+        printf("New message with topic %s: %s\n", msg->topic, (char *) msg->payload);
+        intervalo_medicao = atoi(msg->payload);
+}
+
+void *subscribe_mosquitto(){
+        int id=12;
+        mosq = mosquitto_new("subscribe-test", true, &id);       
+        
+        mosquitto_connect_callback_set(mosq, on_connect);
+        mosquitto_message_callback_set(mosq, on_message);
+        connect_broker();
+
+        mosquitto_loop_start(mosq);
+        printf("Press Enter to quit...\n");
+        getchar();
+        mosquitto_loop_stop(mosq, true);
+        desconect_mosquitto();
+
+}
+
+
 
 void gravarTemperatura(){
         FILE *arq;
@@ -87,6 +127,7 @@ void gravarTemperatura(){
         fprintf(arq, "%d - %s", temperatura,  ctime(&now));
         fclose(arq);
 }
+
 void gravarUmidade(){
         FILE *arq;
         time_t now;
@@ -109,6 +150,7 @@ void gravarPressao(){
         fprintf(arq, "%d - %s", pressao,  ctime(&now));
         fclose(arq);
 }
+
 void gravarLuminosidade(){
         FILE *arq;
         time_t now;
@@ -120,6 +162,42 @@ void gravarLuminosidade(){
         fprintf(arq, "%d - %s", luminosidade,  ctime(&now));
         fclose(arq);
 }
+
+void lerArqTemperatura(){
+        char linha[100];
+        FILE *arq;
+        char *result, ch;
+        int numero_de_linhas = 0;
+       // char *token = strtok(temperaturas, " ");
+        arq = fopen("historicos/temperaturas.txt", "a+");
+        if (arq == NULL){
+                printf("Problema ao abrir arquivo");
+        }
+        printf("Lendo arquivo de temperatura\n");
+        ch=fgetc(arq);
+        while( ch != NULL ){                
+                if(ch == '\n'){
+                     numero_de_linhas++;
+                     printf("numero_de_linhas: %d\n", numero_de_linhas);   
+                }
+                ch=fgetc(arq);             
+                
+        }
+        printf("Numero de linhas: %d", numero_de_linhas);
+                
+        int j = 0;
+        for (int i = 0; i < numero_de_linhas; i++)
+        {       
+                result = fgets(linha, 100, arq);
+                if (numero_de_linhas - i < 10 && result){                        
+                        temperaturas[j] = result;
+                        j++;
+                        printf("%s", temperaturas[j]);
+                }                        
+        }
+
+}
+
 
 int potenciometro(){
       
@@ -189,6 +267,7 @@ void read_dht11_dat()
                 umidade = dht11_dat[0];
                 gravarTemperatura();
                 gravarUmidade();
+                lerArqTemperatura();
                 //PERSISTIR OS DADOS
         } 
 }
@@ -201,7 +280,7 @@ void *getMeasurement(){
                 delay(intervalo_medicao); 
         }
 }
-
+// Função que printa no display os dados dos sensores
 void mostrarMedidas(){
         lcdClear(lcd);    
         lcdPosition(lcd, 0, 0);
@@ -239,13 +318,18 @@ int main(void)
         // }
         
         
-        wiringPiSetup();
+        wiringPiSetup(); // inicializando a wiringPi
+        mosquitto_lib_init();
 
         //MQTTClient_subscribe(client, MQTT_SUBSCRIBE_TOPIC, 0);        
         lcd = lcdInit (2, 16, 4, LCD_RS, LCD_E, LCD_D4, LCD_D5, LCD_D6, LCD_D7, 0, 0, 0, 0);
 
         pthread_t tid;
-        pthread_create(&tid, NULL, getMeasurement, NULL);
+        pthread_create(&tid, NULL, getMeasurement, NULL); // thread que fica sempre pedindo dados dos sensores 
+
+
+        pthread_t t_subscribe;
+        pthread_create(&t_subscribe, NULL, subscribe_mosquitto, NULL); // thread que fica sempre ouvindo o mosquitto
 
         //Logica dos botoes
         // DOIS MODOS NO DISPLAY //
@@ -256,7 +340,7 @@ int main(void)
         pinMode(BUTTON_0, INPUT);           
 
 
-        while(1){
+        while(1){ 
                 if(digitalRead(BUTTON_0) == 0){
                         modo = !modo;                                               
                         delay(20);
@@ -266,27 +350,35 @@ int main(void)
                 if(modo == 1) mostrarMedidas();
                 if (modo == 0){
                         mostrarSelecaoDeIntervalo(intervalo_medicao);
-                        if(digitalRead(BUTTON_1) == 0){
+                        if(digitalRead(BUTTON_2) == 0){
                                 intervalo_medicao = intervalo_medicao + 1000;                                            
                                 delay(20);
-                                while(digitalRead(BUTTON_1) == 0); // aguarda enquato chave ainda esta pressionada           
-                                delay(20);                               
+                                while(digitalRead(BUTTON_2) == 0); // aguarda enquato chave ainda esta pressionada           
+                                delay(20);
+                                char char_intervalo_medicao[10];
+                                sprintf(char_intervalo_medicao, "%d", intervalo_medicao);
+                                int len = sprintf(char_intervalo_medicao, "%d", intervalo_medicao);
+                                publish_mosquitto("tp_03_g04/intervalo", len, char_intervalo_medicao);                               
 
                         }
-                        if(digitalRead(BUTTON_2) == 0){
+                        if(digitalRead(BUTTON_1) == 0){
                                 intervalo_medicao = intervalo_medicao - 1000;
                                 if (intervalo_medicao < 1000){
                                         intervalo_medicao = 1000;
                                 }                                             
                                 delay(20);
-                                while(digitalRead(BUTTON_2) == 0); // aguarda enquato chave ainda esta pressionada           
-                                delay(20);    
+                                while(digitalRead(BUTTON_1) == 0); // aguarda enquato chave ainda esta pressionada           
+                                delay(20);
+                                char char_intervalo_medicao[10];
+                                sprintf(char_intervalo_medicao, "%d", intervalo_medicao);
+                                int len = sprintf(char_intervalo_medicao, "%d", intervalo_medicao);
+                                publish_mosquitto("tp_03_g04/intervalo", len,char_intervalo_medicao); 
 
                         }                        
                               
                 }
                 
-                delay(500);            
+                delay(1000);            
         }
 
         
