@@ -6,4 +6,12 @@ Foi solicitado um sistema para ser implementado na raspberry pi zero, onde medir
 Bianca Santana de A. Silva
 Nilson ...
 Dermeval ...
+# Fluxo
 
+# Interface local
+
+# Interface remota
+
+# Como executar
+
+# Teste 
