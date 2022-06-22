@@ -4,6 +4,6 @@ Foi solicitado um sistema para ser implementado na raspberry pi zero, onde medir
 
 # Equipe
 Bianca Santana de A. Silva
-Nilson
-Dermeval
+Nilson ...
+Dermeval ...
 
