@@ -9,7 +9,8 @@ Nilson ...
 # Fluxo
 
 # Interface local
-Os arquivos pertecentes a esta interface são os que terminam com .h (são as bibliotecas), .c (os executaveis) e a pasta histórico (encontramos os arquivos de texto .txt que guardam os históricos de cada sensor)  
+
+Os arquivos pertecentes a essa interface são os que terminam com .h (são as bibliotecas), .c (os executaveis) e a pasta histórico (encontramos os arquivos de texto .txt que guardam os históricos de cada sensor)  
 
 # Interface remota
 
