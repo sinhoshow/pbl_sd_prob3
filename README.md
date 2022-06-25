@@ -45,6 +45,7 @@ Executando:
 ./main
 ```
 Utilizando a interface local
+
 ![Interface local](imgs/local.jpg)
 ## Interface Remota
 
