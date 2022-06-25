@@ -86,7 +86,22 @@ Antes de tudo, como é um sistema baseado na comunicação utilizando o protocol
 A configuração na interface local é feita via código, ou seja, é necessário que seja feita uma recompilação do programa para atualizar as configurações. Já a interface remota possui uma interface de configuração da conexão MQTT.
 
 - Local:
-    //INSERIR FOTOS E DESCRIÇÕES DE COMO UTILIZAR O SISTEMA.
+    - Tela inicial: Tela de apresentação de intervace local. Para trocar de telas, basta apertar o primeiro botão da placa.
+
+        ![Tela Inicial Local](imgs/inicial_local.jpeg)
+
+    - Intervalo de Medição: Aqui podemos observar o intervalo de medição atual, os botões 1 e 2 são responsáveis por diminuir e aumentar o intervalo.
+
+        ![Tela Invervalo Local](imgs/intervalo_local.jpeg)
+
+    - Medições Atuais: Observamos as medições atuais dos sensores.
+
+        ![Tela Medicoes Atuais](imgs/medicoes_atuais.jpeg)
+
+    - Historicos Aqui podemos observar os históricos de cada sensor. Automaticamente as medidas vão passando pela tela acompanhadas pelos índices. A primeira medição é sempre a atual. Para trocar de medida, basta apertar o botão 0.
+        ![Historicos Local](imgs/historico_local.jpeg)
+        ![Exemplo Historico](imgs/historico_local.jpeg)
+        
 - Remota:
 
     passo 1: conectar ao broker;
@@ -104,7 +119,7 @@ A configuração na interface local é feita via código, ou seja, é necessári
         ![Dados Remoto](imgs/dados_remoto.png)
 
     - Históricos com as últimas 10 medições de cada sensor.
-    
+
         ![Historico Remoto](imgs/historico_remoto.png)
 
     
