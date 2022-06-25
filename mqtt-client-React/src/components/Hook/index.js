@@ -27,6 +27,7 @@ const HookMqtt = () => {
 
   const mqttConnect = (host, mqttOption) => {
     setConnectStatus('Connecting');
+    console.log(host, mqttOption);
     setClient(mqtt.connect(host, mqttOption));
   };
 

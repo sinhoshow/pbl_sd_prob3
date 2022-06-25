@@ -4,31 +4,24 @@ import { Card, Button, Form, Input, Row, Col } from 'antd';
 const Connection = ({ connect, disconnect, connectBtn }) => {
   const [form] = Form.useForm();
   const record = {
-    host: 'broker.emqx.io',
-    clientId: `mqttjs_ + ${Math.random().toString(16).substr(2, 8)}`,
-    port: 8083,
+    host: '10.0.0.101',
+    clientId: `mqttjs_${Math.random().toString(16).substr(2, 8)}`,
+    port: 9001,
+    username: "aluno",
+    password: "aluno*123"
   };
   const onFinish = (values) => {
     const { host, clientId, port, username, password } = values;
-    const url = `ws://${host}:${port}/mqtt`;
+    const url = `ws://${host}`;
+    console.log(url);
     const options = {
-      keepalive: 30,
-      protocolId: 'MQTT',
-      protocolVersion: 4,
-      clean: true,
-      reconnectPeriod: 1000,
-      connectTimeout: 30 * 1000,
-      will: {
-        topic: 'WillMsg',
-        payload: 'Connection Closed abnormally..!',
-        qos: 0,
-        retain: false
-      },
-      rejectUnauthorized: false
+      protocol: 'ws',
+      port: port,
+      clientId: clientId,
+      username: username,
+      password: password,
+      rejectUnauthorized: false,
     };
-    options.clientId = clientId;
-    options.username = username;
-    options.password = password;
     connect(url, options);
   };
 

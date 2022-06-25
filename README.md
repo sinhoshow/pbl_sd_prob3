@@ -44,7 +44,7 @@ Executando:
 ```sh
 ./main
 ```
-![Interface local](imgs/local.png)
+![Interface local](imgs/local.jpg)
 ## Interface Remota
 
 A interface foi desenvolvida em React v16.13.1 e é necessária a instalação do [Node.js](https://nodejs.org/) para sua execução.
@@ -88,4 +88,9 @@ A configuração na interface local é feita via código, ou seja, é necessári
 - Local:
     //INSERIR FOTOS E DESCRIÇÕES DE COMO UTILIZAR O SISTEMA.
 - Remota:
-    //INSERIR AS IMAGENS DA INTERFACE REMOTA E DESCRIÇÕES DE COMO UTILIZAR O SISTEMA.
+    ![Config Remoto](imgs/config_remoto.png)
+    Acima podemos observar a interface remota em funcionamento. Primeiro a parte de configuração de conexão do broker. Nela é possível descrever os dados de acesso para ser feita a conexão. Na segunda parte, selecionamos o tópico no qual iremos ficar "ouvindo". A terceira parte é onde o usuário pode selecionar o intervalo de tempo que deseja que sejam feita as medições. Vale lembrar que automaticamente o tópico de publish já está atribuído (tp_03_g04/dados).
+    ![Dados Remoto](imgs/dados_remoto.png)
+    Aqui é mostrada a medição atual dos sensores.
+    ![Historico Remoto](imgs/historico.png)
+    Históricos com as últimas 10 medições de cada sensor.

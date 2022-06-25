@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Card, Form, Input, Row, Col, Button, Select } from 'antd';
+import { Card, Form, Input, Row, Col, Button } from 'antd';
 import { QosOption } from './index'
 
 const Publisher = ({ publish }) => {
@@ -26,7 +26,7 @@ const Publisher = ({ publish }) => {
       <Row gutter={20}>
         <Col span={24}>
           <Form.Item
-            label="Selecione um intervalo de tempo (em s):"
+            label="Selecione um intervalo de tempo (em ms):"
             name="payload"
           >
             <Input />
