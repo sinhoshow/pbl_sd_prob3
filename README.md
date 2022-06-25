@@ -32,7 +32,7 @@ No display LCD é possível ver o tempo de medição e alterá-lo utilizando os 
 
 Os arquivos pertecentes a essa interface são os que terminam com .h (são as bibliotecas), .c (os executaveis) e a pasta histórico (encontramos os arquivos de texto .txt que guardam os históricos de cada sensor).
 
-Como instalar a biblioteca mosquitto.h para utilização do mqtt-cliente:
+Como instalar a biblioteca mosquitto.h para utilização do mosquitto-cliente:
 ```sh
 sudo apt install gcc mosquitto mosquitto-clients libmosquitto-dev
 ```
