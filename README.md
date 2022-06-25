@@ -30,7 +30,7 @@ Na interface local recebemos os dados do sensor dht11, o qual fornece os dados d
 
 No display LCD é possível ver o tempo de medição e alterá-lo utilizando os botões e também são mostrados os dados dos sensores em tempo real e os históricos de cada um, contendo as 10 últimas medições. A persistência de dados dos históricos é feita por meio de arquivos de texto salvos na pasta históricos.
 
-Os arquivos pertecentes a essa interface são os que terminam com .h (são as bibliotecas), .c (os executaveis) e a pasta histórico (encontramos os arquivos de texto .txt que guardam os históricos de cada sensor).
+Os arquivos pertecentes a essa interface (ou seja, tem que está dentro da raspberry pi) são os que terminam com .h (são as bibliotecas), .c (os executaveis) e a pasta histórico (encontramos os arquivos de texto .txt que guardam os históricos de cada sensor).
 
 Como instalar a biblioteca mosquitto.h para utilização do mosquitto-cliente:
 ```sh
