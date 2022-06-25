@@ -32,10 +32,18 @@ No display LCD é possível ver o tempo de medição e alterá-lo utilizando os 
 
 Os arquivos pertecentes a essa interface são os que terminam com .h (são as bibliotecas), .c (os executaveis) e a pasta histórico (encontramos os arquivos de texto .txt que guardam os históricos de cada sensor).
 
+Como instalar a biblioteca mosquitto.h para utilização do mqtt-cliente:
 ```sh
 sudo apt install gcc mosquitto mosquitto-clients libmosquitto-dev
 ```
-// DIZER COMO EXECUTAR A INTERFACE LOCAL //
+Compilando arquivos:
+```sh
+gcc ads1115_rpi.c main.c cJSON.c -o main -lwiringPi -lwiringPiDev -lpthread -lmosquitto 
+```
+Executando:
+```sh
+./main
+```
 
 ## Interface Remota
 
