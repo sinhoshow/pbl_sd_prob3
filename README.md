@@ -88,9 +88,18 @@ A configuração na interface local é feita via código, ou seja, é necessári
 - Local:
     //INSERIR FOTOS E DESCRIÇÕES DE COMO UTILIZAR O SISTEMA.
 - Remota:
+    passo 1: conectar ao broker;
+    passo 2: subscrever ao tópico;
+    passo 3: verificar medições e/ou modificar intervalo de medição;    
+
     ![Config Remoto](imgs/config_remoto.png)
-    Acima podemos observar a interface remota em funcionamento. Primeiro a parte de configuração de conexão do broker. Nela é possível descrever os dados de acesso para ser feita a conexão. Na segunda parte, selecionamos o tópico no qual iremos ficar "ouvindo". A terceira parte é onde o usuário pode selecionar o intervalo de tempo que deseja que sejam feita as medições. Vale lembrar que automaticamente o tópico de publish já está atribuído (tp_03_g04/dados).
+
+    - Acima podemos observar a interface remota em funcionamento. Primeiro a parte de configuração de conexão do broker. Nela é possível descrever os dados de acesso para ser feita a conexão. Na segunda parte, selecionamos o tópico no qual iremos ficar "ouvindo". A terceira parte é onde o usuário pode selecionar o intervalo de tempo que deseja que sejam feita as medições. Vale lembrar que automaticamente o tópico de publish já está atribuído (tp_03_g04/dados).
     ![Dados Remoto](imgs/dados_remoto.png)
-    Aqui é mostrada a medição atual dos sensores.
-    ![Historico Remoto](imgs/historico.png)
-    Históricos com as últimas 10 medições de cada sensor.
+
+    - Aqui é mostrada a medição atual dos sensores.
+    ![Historico Remoto](imgs/historico_remoto.png)
+
+    - Históricos com as últimas 10 medições de cada sensor.
+
+    
