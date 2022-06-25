@@ -32,6 +32,9 @@ No display LCD é possível ver o tempo de medição e alterá-lo utilizando os 
 
 Os arquivos pertecentes a essa interface são os que terminam com .h (são as bibliotecas), .c (os executaveis) e a pasta histórico (encontramos os arquivos de texto .txt que guardam os históricos de cada sensor).
 
+```sh
+sudo apt install gcc mosquitto mosquitto-clients libmosquitto-dev
+```
 // DIZER COMO EXECUTAR A INTERFACE LOCAL //
 
 ## Interface Remota
