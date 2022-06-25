@@ -88,8 +88,11 @@ A configuração na interface local é feita via código, ou seja, é necessári
 - Local:
     //INSERIR FOTOS E DESCRIÇÕES DE COMO UTILIZAR O SISTEMA.
 - Remota:
+
     passo 1: conectar ao broker;
+
     passo 2: subscrever ao tópico;
+    
     passo 3: verificar medições e/ou modificar intervalo de medição;    
 
     ![Config Remoto](imgs/config_remoto.png)
