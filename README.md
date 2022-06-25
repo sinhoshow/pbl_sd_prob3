@@ -44,7 +44,7 @@ Executando:
 ```sh
 ./main
 ```
-
+![Interface local](imgs/local.png)
 ## Interface Remota
 
 A interface foi desenvolvida em React v16.13.1 e é necessária a instalação do [Node.js](https://nodejs.org/) para sua execução.
