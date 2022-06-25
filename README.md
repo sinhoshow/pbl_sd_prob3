@@ -25,20 +25,9 @@ Como podemos observar àcima, o sistema é composto por três principais entidad
 - Broker MQTT, responsável pela comunicação entre as interfaces.
 
 ## Interface local
-Na interface local temos: 
-Sensor dht11
-Temos que esperar o tempo de resposta de acordo com sua documentação, 
-Potenciômetro
-Usamos a biblioteca ads1115_rpi, utilizando o protocolo I2C para comunicação. Através deste protocolo podemos configurar o dispositivo e fazer a leitura de seus dados de conversão  Analógica-Digital .
-MultiThread
-Foi utilizado multithread para poder ficar sempre lendo os dados dos sensores.
-Display LCD e Botão
-É possível ver o tempo de medição e alterá-lo utilizando os botões 
-São mostrados os dados dos sensores em tempo real e os históricos de cada um.
-Histórico
-A persistência de dados dos históricos são feitas por meio de arquivo de texto.
-MQTT e Broker
-Foi utilizada a biblioteca mosquitto.h, ela precisa ser instalada pois não vem nativa da linguagem C 
+
+Na interface local recebemos os dados do sensor dht11, o qual fornece os dados de temperatura e umidade, e do potenciômetro para simular os dados de luminosidade e pressão atmosférica. Para utilizar o potenciómetro usamos a biblioteca ads1115_rpi, nela sendo utilizado o protocolo I2C para comunicação. Através deste protocolo podemos configurar o dispositivo e fazer a leitura de seus dados de conversão  Analógica-Digital. 
+
 Os arquivos pertecentes a essa interface são os que terminam com .h (são as bibliotecas), .c (os executaveis) e a pasta histórico (encontramos os arquivos de texto .txt que guardam os históricos de cada sensor)
 
 // DIZER COMO EXECUTAR A INTERFACE LOCAL //
