@@ -28,13 +28,15 @@ Como podemos observar àcima, o sistema é composto por três principais entidad
 
 Na interface local recebemos os dados do sensor dht11, o qual fornece os dados de temperatura e umidade, e do potenciômetro para simular os dados de luminosidade e pressão atmosférica. Para utilizar o potenciómetro usamos a biblioteca ads1115_rpi, nela sendo utilizado o protocolo I2C para comunicação. Através deste protocolo podemos configurar o dispositivo e fazer a leitura de seus dados de conversão  Analógica-Digital. 
 
+No display LCD é possível ver o tempo de medição e alterá-lo utilizando os botões e também são mostrados os dados dos sensores em tempo real e os históricos de cada um, contendo as 10 últimas medições. A persistência de dados dos históricos é feita por meio de arquivos de texto salvos na pasta históricos .
+
 Os arquivos pertecentes a essa interface são os que terminam com .h (são as bibliotecas), .c (os executaveis) e a pasta histórico (encontramos os arquivos de texto .txt que guardam os históricos de cada sensor)
 
 // DIZER COMO EXECUTAR A INTERFACE LOCAL //
 
 ## Interface Remota
 
-A interface foi desenvolvida em React v16.13.1 e é necarrária a instalação do [Node.js](https://nodejs.org/) para sua execução.
+A interface foi desenvolvida em React v16.13.1 e é necessária a instalação do [Node.js](https://nodejs.org/) para sua execução.
 Pode ser executada a partir de qualquer sistema operacional, visto que é uma aplicação web e rodará no navegador.
 
 A aplicação está dentro do diretório "mqtt-client-React", no qual cada arquivo dentro da pasta "src" foi nomeado fazendo referência ao components implementados na tela.
