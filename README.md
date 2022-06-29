@@ -44,6 +44,8 @@ Executando:
 ```sh
 ./main
 ```
+Utilizando a interface local
+
 ![Interface local](imgs/local.jpg)
 ## Interface Remota
 
@@ -98,7 +100,7 @@ A configuração na interface local é feita via código, ou seja, é necessári
 
         ![Tela Medicoes Atuais](imgs/medicoes_atuais.jpeg)
 
-    - Historicos Aqui podemos observar os históricos de cada sensor. Automaticamente as medidas vão passando pela tela acompanhadas pelos índices. A primeira medição é sempre a atual. Para trocar de medida, basta apertar o botão 0.
+    - Historicos Aqui podemos observar os históricos de cada sensor. Automaticamente as medidas vão passando pela tela acompanhadas pelos índices. A ultima medição é sempre a atual. Para trocar de medida, basta apertar o botão 0.
         ![Historicos Local](imgs/tela_historicos.jpeg)
         ![Exemplo Historico](imgs/historico_local.jpeg)
 
