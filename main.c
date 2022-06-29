@@ -86,7 +86,7 @@ void desconect_mosquitto(){
 }
 
 void publish_mosquitto(char *topic, int payload_size ,char *payload){
-        printf("%s", payload);
+        printf("Dado enviado para o broker: %s\n", payload);
         mosq = mosquitto_new("publisher-test", true, NULL);
         connect_broker();
         mosquitto_publish(mosq, NULL, topic, payload_size, payload, 0, false);
@@ -385,7 +385,6 @@ void read_dht11_dat()
                 gravarUmidade();
                 lerArqTemperatura();
                 lerArqUmidade();
-                //PERSISTIR OS DADOS
         } 
 }
 
@@ -423,58 +422,59 @@ void enviarDados(){
                 fprintf(stderr, "Failed to convertJson.\n");
         }
 
-        for (index = 0; index < (sizeof(temperaturas)/8); ++index)
+        for (index = 0; index < 10; ++index)
         { 
                 if(temperaturas[index] != NULL){
                         cJSON *temp = NULL;
-                        temp = cJSON_CreateString(&temperaturas[index]);
-                        // cJSON_AddItemToArray(array_temperaturas, temp);
+                        char *strAddress = temperaturas[index];
+                        temp = cJSON_CreateString(strAddress);
+                        cJSON_AddItemToArray(array_temperaturas, temp);
                 }        
         }
 
-        // for (index = 0; index < (sizeof(pressoes)/8); ++index)
-        // { 
-        //         if(pressoes[index] != NULL){
-        //                 cJSON *press = NULL;
-        //                 press = cJSON_CreateString(pressoes[index]);
-        //                 cJSON_AddItemToArray(array_pressoes, press);
-        //         }        
-        // }
+        for (index = 0; index < 10; ++index)
+        { 
+                if(pressoes[index] != NULL){
+                        cJSON *press = NULL;
+                        press = cJSON_CreateString(pressoes[index]);
+                        cJSON_AddItemToArray(array_pressoes, press);
+                }        
+        }
 
-        // for (index = 0; index < (sizeof(umidades)/8); ++index)
-        // { 
-        //         if(umidades[index] != NULL){
-        //                 cJSON *umid = NULL;
-        //                 umid = cJSON_CreateString(umidades[index]);
-        //                 cJSON_AddItemToArray(array_umidades, umid);
-        //         }        
-        // }
+        for (index = 0; index < 10; ++index)
+        { 
+                if(umidades[index] != NULL){
+                        cJSON *umid = NULL;
+                        umid = cJSON_CreateString(umidades[index]);
+                        cJSON_AddItemToArray(array_umidades, umid);
+                }        
+        }
 
-        // for (index = 0; index < (sizeof(luminosidades)/8); ++index)
-        // { 
-        //         if(luminosidades[index] != NULL){
-        //                 cJSON *lum = NULL;
-        //                 lum = cJSON_CreateString(luminosidades[index]);
-        //                 cJSON_AddItemToArray(array_luminosidades, lum);
-        //         }        
-        // }
+        for (index = 0; index < 10; ++index)
+        { 
+                if(luminosidades[index] != NULL){
+                        cJSON *lum = NULL;
+                        lum = cJSON_CreateString(luminosidades[index]);
+                        cJSON_AddItemToArray(array_luminosidades, lum);
+                }        
+        }
 
-        // payload = cJSON_Print(dado);
-        // if (payload == NULL)
-        // {
-        //         fprintf(stderr, "Failed to convertJson.\n");
-        // }
-        // printf("\n%s", payload);
-        // size_t len = strlen(payload);
-        // publish_mosquitto("tp_03_g04/dados", len, char_intervalo_medicao);
+        payload = cJSON_Print(dado);
+        if (payload == NULL)
+        {
+                fprintf(stderr, "Failed to convertJson.\n");
+        }
+
+        size_t len = strlen(payload);
+        
+        publish_mosquitto("tp_03_g04/dados", len, payload);
 }
 
 void *getMeasurement(){
         while (1)
         {
                 read_dht11_dat();
-                potenciometro();
-                printf("Chegou aqui");                
+                potenciometro();             
                 enviarDados();               
                 delay(intervalo_medicao); 
         }
