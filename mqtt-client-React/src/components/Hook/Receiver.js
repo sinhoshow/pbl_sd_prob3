@@ -16,7 +16,11 @@ const Receiver = ({ payload }) => {
 
   useEffect(() => {
     if (payload.topic && payload.topic === 'tp_03_g04/intervalo') {
-      setIntervaloDeTempo(interval => { return { ...interval, value: payload.message } })
+      let intervalo = payload.message;
+      if (intervalo < 2000) {
+        intervalo = 2000
+      }
+      setIntervaloDeTempo(interval => { return { ...interval, value: intervalo } })
     } else if (payload.topic && payload.topic === 'tp_03_g04/dados') {
       const dados = JSON.parse(payload.message)
       const { temperaturas, umidades, pressoes, luminosidades } = dados
