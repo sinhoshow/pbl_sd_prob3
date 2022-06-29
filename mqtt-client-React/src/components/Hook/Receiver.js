@@ -22,13 +22,13 @@ const Receiver = ({ payload }) => {
       const { temperaturas, umidades, pressoes, luminosidades } = dados
       setHisTemperatura(hist => { return { ...hist, values: temperaturas } })
       setHistUmidade(hist => { return { ...hist, values: umidades } })
-      setHisLuminosidade(hist => { return { ...hist, values: pressoes } })
-      setHistPressao(hist => { return { ...hist, values: luminosidades } })
+      setHisLuminosidade(hist => { return { ...hist, values: luminosidades } })
+      setHistPressao(hist => { return { ...hist, values: pressoes } })
 
-      setTemperatura(temp => { return { ...temp, value: temperaturas[0].split('-')[0] } })
-      setUmidade(umidade => { return { ...umidade, value: umidades[0].split('-')[0] } })
-      setLuminosidade(lum => { return { ...lum, value: pressoes[0].split('-')[0] } })
-      setPressao(pressao => { return { ...pressao, value: luminosidades[0].split('-')[0] } })
+      setTemperatura(temp => { return { ...temp, value: temperaturas[9].split('-')[0] } })
+      setUmidade(umidade => { return { ...umidade, value: umidades[9].split('-')[0] } })
+      setLuminosidade(lum => { return { ...lum, value: luminosidades[9].split('-')[0] } })
+      setPressao(pressao => { return { ...pressao, value: pressoes[9].split('-')[0] } })
     }
   }, [payload.message, payload.topic])
 
