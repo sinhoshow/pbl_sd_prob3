@@ -44,7 +44,7 @@
 
 int lcd;
 int dht11_dat[5] = {0, 0, 0, 0, 0};
-int intervalo_medicao = 1000; //em s
+int intervalo_medicao = 5000; //em s
 int temperatura = 0;
 int umidade = 0;
 int pressao = 0;
@@ -105,7 +105,12 @@ void on_connect(struct mosquitto *mosq, void *obj, int rc) {
 
 void on_message(struct mosquitto *mosq, void *obj, const struct mosquitto_message *msg) {
         printf("New message with topic %s: %s\n", msg->topic, (char *) msg->payload);
-        intervalo_medicao = atoi(msg->payload);
+        int intervalo = atoi(msg->payload);
+        intervalo_medicao = intervalo;
+        if (intervalo < 2000){
+                intervalo_medicao = 2000;  
+        }
+        
 }
 
 void *subscribe_mosquitto(){
@@ -602,8 +607,8 @@ int main(void)
                         }
                         if(digitalRead(BUTTON_1) == 0){
                                 intervalo_medicao = intervalo_medicao - 1000;
-                                if (intervalo_medicao < 1000){
-                                        intervalo_medicao = 1000;
+                                if (intervalo_medicao < 2000){
+                                        intervalo_medicao = 2000;
                                 }                                             
                                 delay(20);
                                 while(digitalRead(BUTTON_1) == 0); // aguarda enquato chave ainda esta pressionada           
